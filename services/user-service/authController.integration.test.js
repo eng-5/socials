@@ -9,7 +9,7 @@ beforeEach(async () => {
     await User.destroy({ where: {}, truncate: true })
 });
 
-// Close the DB connection after all tests finis, so Jest exits cleanly
+// Close the DB connection after all tests finish, so Jest exits cleanly
 afterAll(async () => {
     await sequelize.close();
 });
@@ -27,4 +27,20 @@ test('POST /api/user/auth/register rejects a duplicate email', async () => {
     const res = await request(app).post('/api/user/auth/register').send({ username: 'userb', email: 'dup@test.com', password: 'pass1234' });
 
     expect(res.statusCode).toBe(400);
+});
+// test for the login route
+test('POST /api/user/auth/login returns a JWT for correct credentials', async () => {
+    await request(app).post('/api/user/auth/register').send({ username: 'loginuser', email: 'login@test.com', password: 'pass1234' });
+
+    const res = await request(app).post('/api/user/auth/login').send({ email: 'login@test.com', password: 'pass1234' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.token).toBeDefined();
+});
+// Test to reject wrong Login password
+test('POST /api/user/auth/login rejects wrong password', async () => {
+    await request(app).post('/api/user/auth/register').send({ username: 'loginuser2', email: 'login2@test.com', password: 'pass1234' });
+
+    const res = await request(app).post('/api/user/auth/login').send({ email: 'login2@test.com', password: 'wrongpassword' })
+    expect(res.statusCode).toBe(401);
 });

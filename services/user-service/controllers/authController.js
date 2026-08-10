@@ -32,3 +32,31 @@ exports.register = async (req, res) => {
     }
 
 }
+// Login controller
+exports.login = async (req, res) => {
+    try {
+        // check if the username and password exist in the body of the request(req.body)
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ error: 'email and password are required' });
+        }
+        // check if the user exist with the email
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        // Check if the password is correct using the compare function we defined in the User model
+        const isUser = await user.comparePassword(password);
+        if (!isUser) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        const token = signToken(user.id);
+        return res.status(200).json({
+            token,
+            user: { userId: user.id, username: user.username, email: user.email }
+        })
+    } catch (err) {
+        console.error(err);
+        res.status(500).json('Something went wrong');
+    }
+}

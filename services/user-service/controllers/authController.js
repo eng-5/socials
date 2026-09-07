@@ -1,9 +1,10 @@
 // controllers/authController.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { v4: uuidv4 } = require('uuid');
 
 const signToken = (userId) => {
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return jwt.sign({ id: userId, jti: uuidv4() }, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 
 exports.register = async (req, res) => {

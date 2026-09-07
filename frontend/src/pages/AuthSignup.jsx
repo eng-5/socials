@@ -1,26 +1,37 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Sparkles, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
 
 export default function AuthSignup() {
   const navigate = useNavigate();
+  const { register } = useAuth();
+  const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]  = useState(false);
-  const [form, setForm]        = useState({ name: '', email: '', password: '' });
-  const [focused, setFocused]  = useState('');
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const [focused, setFocused] = useState('');
 
   const fields = [
-    { key: 'name',     label: 'Full name',      Icon: User, type: 'text',     ph: 'Kaelen Vance' },
-    { key: 'email',    label: 'Email address',   Icon: Mail, type: 'email',    ph: 'name@example.com' },
+    { key: 'username', label: 'Full name', Icon: User, type: 'text', ph: 'Kaelen Vance' },
+    { key: 'email', label: 'Email address', Icon: Mail, type: 'email', ph: 'name@example.com' },
     { key: 'password', label: 'Create password', Icon: Lock, type: 'password', ph: '••••••••••' },
   ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1100));
-    setLoading(false);
-    navigate('/');
+    try {
+      await register(form);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Registration failed, please try again.')
+    } finally {
+      setLoading(false);
+    }
+
   };
 
   const strength = (() => {
@@ -34,7 +45,7 @@ export default function AuthSignup() {
     return s;
   })();
 
-  const strengthColor = ['bg-error','bg-tertiary','bg-secondary','bg-primary'][strength - 1] || 'bg-outline-variant/30';
+  const strengthColor = ['bg-error', 'bg-tertiary', 'bg-secondary', 'bg-primary'][strength - 1] || 'bg-outline-variant/30';
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -58,6 +69,11 @@ export default function AuthSignup() {
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                {error}
+              </div>
+            )}
             {fields.map(({ key, label, Icon, type, ph }) => (
               <div key={key} className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-on-surface-variant ml-1 uppercase tracking-widest">{label}</label>
@@ -82,12 +98,12 @@ export default function AuthSignup() {
                 {key === 'password' && form.password && (
                   <div className="flex items-center gap-2 px-1">
                     <div className="flex gap-1 flex-1">
-                      {[0,1,2,3].map(i => (
+                      {[0, 1, 2, 3].map(i => (
                         <div key={i} className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${i < strength ? strengthColor : 'bg-outline-variant/30'}`} />
                       ))}
                     </div>
                     <span className="text-[10px] font-bold text-on-surface-variant">
-                      {['','Weak','Fair','Good','Strong'][strength]}
+                      {['', 'Weak', 'Fair', 'Good', 'Strong'][strength]}
                     </span>
                   </div>
                 )}

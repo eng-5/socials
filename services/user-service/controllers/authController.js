@@ -2,6 +2,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { v4: uuidv4 } = require('uuid');
+const redis = require('../config/redis');
 
 const signToken = (userId) => {
     return jwt.sign({ id: userId, jti: uuidv4() }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -60,4 +61,24 @@ exports.login = async (req, res) => {
         console.error(err);
         res.status(500).json('Something went wrong');
     }
+}
+exports.logout = async (req, res) => {
+    try {
+        const jti = req.headers['x-token-jti'];
+        const exp = req.headers['x-token-exp'];
+
+        if (!jti || !exp) {
+            return res.status(400).json({ error: 'No active session found' });
+        }
+        const ttl = exp - Math.floor(Date.now() / 1000);
+
+        if (ttl > 0) {
+            await redis.set(`blacklist:${jti}`, '1', 'EX', ttl);
+        }
+        return res.status(200).json({ message: 'Logged out successfully' });
+    } catch (err) {
+        console.err(err);
+        res.status(500).json({ error: 'Something went wrong' });
+    }
+
 }

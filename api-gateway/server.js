@@ -22,8 +22,14 @@ function injectInternalSecret(req, res, next) {
     next();
 
 }
+function requireTokenForLogout(req, res, next) {
+    if (req.path === '/logout') {
+        return verifyToken(req, res, next);
+    }
+    next();
+}
 // Auth routes are public - you can't verify a JWT before you have one
-app.use('/api/user/auth', injectInternalSecret, createProxyMiddleware({
+app.use('/api/user/auth', injectInternalSecret, requireTokenForLogout, createProxyMiddleware({
     target: process.env.USER_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: { '^/': '/api/user/auth/' }

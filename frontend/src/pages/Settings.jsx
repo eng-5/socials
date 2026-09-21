@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   User, Bell, Lock, Shield, Palette, Bot, Moon, Sun,
   ChevronRight, LogOut, Trash2, Download, Globe, Eye, EyeOff,
@@ -6,12 +7,12 @@ import {
 } from 'lucide-react';
 
 const SECTIONS = [
-  { id: 'profile',       label: 'Profile',        icon: User },
-  { id: 'appearance',    label: 'Appearance',      icon: Palette },
-  { id: 'notifications', label: 'Notifications',   icon: Bell },
-  { id: 'privacy',       label: 'Privacy',         icon: Shield },
-  { id: 'ai',            label: 'AI Preferences',  icon: Bot },
-  { id: 'security',      label: 'Security',        icon: Lock },
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'appearance', label: 'Appearance', icon: Palette },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'privacy', label: 'Privacy', icon: Shield },
+  { id: 'ai', label: 'AI Preferences', icon: Bot },
+  { id: 'security', label: 'Security', icon: Lock },
 ];
 
 function Toggle({ enabled, onToggle }) {
@@ -38,6 +39,7 @@ function SettingRow({ label, description, children }) {
 }
 
 export default function Settings() {
+  const { logout } = useAuth();
   const [activeSection, setActiveSection] = useState('profile');
   const [toggles, setToggles] = useState({
     darkMode: true, reducedMotion: false, compactView: false,
@@ -70,9 +72,9 @@ export default function Settings() {
           </div>
           {/* Fields */}
           {[
-            { key: 'name',   label: 'Display name',  type: 'text' },
-            { key: 'handle', label: 'Username',       type: 'text', prefix: '@' },
-            { key: 'email',  label: 'Email address',  type: 'email' },
+            { key: 'name', label: 'Display name', type: 'text' },
+            { key: 'handle', label: 'Username', type: 'text', prefix: '@' },
+            { key: 'email', label: 'Email address', type: 'email' },
           ].map(({ key, label, type, prefix }) => (
             <div key={key} className="space-y-1.5">
               <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">{label}</label>
@@ -121,9 +123,9 @@ export default function Settings() {
               {[
                 { color: 'bg-indigo-500', ring: 'ring-indigo-500', label: 'Indigo' },
                 { color: 'bg-violet-500', ring: 'ring-violet-500', label: 'Violet' },
-                { color: 'bg-pink-500',   ring: 'ring-pink-500',   label: 'Pink' },
-                { color: 'bg-cyan-500',   ring: 'ring-cyan-500',   label: 'Cyan' },
-                { color: 'bg-emerald-500',ring: 'ring-emerald-500',label: 'Emerald'},
+                { color: 'bg-pink-500', ring: 'ring-pink-500', label: 'Pink' },
+                { color: 'bg-cyan-500', ring: 'ring-cyan-500', label: 'Cyan' },
+                { color: 'bg-emerald-500', ring: 'ring-emerald-500', label: 'Emerald' },
               ].map(({ color, ring, label }, i) => (
                 <button key={label} title={label} className={`w-8 h-8 ${color} rounded-full transition-all hover:scale-110 ${i === 0 ? `ring-2 ring-offset-2 ring-offset-surface-container ${ring}` : ''}`} />
               ))}
@@ -135,11 +137,11 @@ export default function Settings() {
       case 'notifications': return (
         <div className="space-y-2">
           {[
-            { key: 'notifLikes',    label: 'Likes',           desc: 'When someone likes your post' },
-            { key: 'notifComments', label: 'Comments',         desc: 'When someone comments on your content' },
-            { key: 'notifFollows',  label: 'New followers',    desc: 'When someone starts following you' },
-            { key: 'notifSystem',   label: 'System updates',   desc: 'Platform news and feature announcements' },
-            { key: 'notifEmail',    label: 'Email digest',      desc: 'Weekly summary sent to your email' },
+            { key: 'notifLikes', label: 'Likes', desc: 'When someone likes your post' },
+            { key: 'notifComments', label: 'Comments', desc: 'When someone comments on your content' },
+            { key: 'notifFollows', label: 'New followers', desc: 'When someone starts following you' },
+            { key: 'notifSystem', label: 'System updates', desc: 'Platform news and feature announcements' },
+            { key: 'notifEmail', label: 'Email digest', desc: 'Weekly summary sent to your email' },
           ].map(({ key, label, desc }) => (
             <SettingRow key={key} label={label} description={desc}>
               <Toggle enabled={toggles[key]} onToggle={() => toggle(key)} />
@@ -151,10 +153,10 @@ export default function Settings() {
       case 'privacy': return (
         <div className="space-y-2">
           {[
-            { key: 'privateAccount', label: 'Private account',    desc: 'Only approved followers see your posts' },
-            { key: 'showOnline',     label: 'Show online status', desc: 'Let others see when you\'re active' },
-            { key: 'indexable',      label: 'Discoverable',        desc: 'Appear in search results and recommendations' },
-            { key: 'dataSharing',    label: 'Analytics sharing',   desc: 'Help improve Obsidian by sharing usage data' },
+            { key: 'privateAccount', label: 'Private account', desc: 'Only approved followers see your posts' },
+            { key: 'showOnline', label: 'Show online status', desc: 'Let others see when you\'re active' },
+            { key: 'indexable', label: 'Discoverable', desc: 'Appear in search results and recommendations' },
+            { key: 'dataSharing', label: 'Analytics sharing', desc: 'Help improve Obsidian by sharing usage data' },
           ].map(({ key, label, desc }) => (
             <SettingRow key={key} label={label} description={desc}>
               <Toggle enabled={toggles[key]} onToggle={() => toggle(key)} />
@@ -176,10 +178,10 @@ export default function Settings() {
       case 'ai': return (
         <div className="space-y-2">
           {[
-            { key: 'aiSummary',     label: 'AI post summaries',     desc: 'Smart summaries appear on long posts in your feed' },
-            { key: 'aiSuggestions', label: 'Smart suggestions',      desc: 'AI-curated content recommendations' },
-            { key: 'aiFilter',      label: 'Content filtering',       desc: 'AI-powered safety and quality filters' },
-            { key: 'aiVoice',       label: 'Voice input (beta)',      desc: 'Dictate posts and messages using your microphone' },
+            { key: 'aiSummary', label: 'AI post summaries', desc: 'Smart summaries appear on long posts in your feed' },
+            { key: 'aiSuggestions', label: 'Smart suggestions', desc: 'AI-curated content recommendations' },
+            { key: 'aiFilter', label: 'Content filtering', desc: 'AI-powered safety and quality filters' },
+            { key: 'aiVoice', label: 'Voice input (beta)', desc: 'Dictate posts and messages using your microphone' },
           ].map(({ key, label, desc }) => (
             <SettingRow key={key} label={label} description={desc}>
               <Toggle enabled={toggles[key]} onToggle={() => toggle(key)} />
@@ -200,8 +202,8 @@ export default function Settings() {
       case 'security': return (
         <div className="space-y-2">
           {[
-            { key: 'twoFactor',    label: 'Two-factor authentication', desc: 'Add an extra layer of security to your account' },
-            { key: 'loginAlerts',  label: 'Login alerts',               desc: 'Get notified of new sign-ins to your account' },
+            { key: 'twoFactor', label: 'Two-factor authentication', desc: 'Add an extra layer of security to your account' },
+            { key: 'loginAlerts', label: 'Login alerts', desc: 'Get notified of new sign-ins to your account' },
           ].map(({ key, label, desc }) => (
             <SettingRow key={key} label={label} description={desc}>
               <Toggle enabled={toggles[key]} onToggle={() => toggle(key)} />
@@ -243,18 +245,17 @@ export default function Settings() {
               <button
                 key={id}
                 onClick={() => setActiveSection(id)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
-                  activeSection === id
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeSection === id
                     ? 'bg-primary/10 text-primary font-bold'
                     : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-                }`}
+                  }`}
               >
                 <Icon size={15} />
                 <span>{label}</span>
               </button>
             ))}
             <hr className="border-outline-variant/10 hidden lg:block my-2" />
-            <button className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-error hover:bg-error/5 transition-all whitespace-nowrap">
+            <button onClick={logout} className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-error hover:bg-error/5 transition-all whitespace-nowrap">
               <LogOut size={15} /><span>Sign out</span>
             </button>
           </nav>

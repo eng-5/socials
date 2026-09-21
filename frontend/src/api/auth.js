@@ -8,3 +8,6 @@ export const register = (username, email, password) => {
 export const login = (email, password) => {
     return client.post('/api/user/auth/login', { email, password });
 }
+export const logout = () => {
+    return client.post('/api/user/auth/logout', {});
+}

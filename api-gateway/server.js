@@ -41,6 +41,11 @@ app.use('/api/user', verifyToken, createProxyMiddleware({
     changeOrigin: true,
     pathRewrite: { '^/': '/api/user/' }
 }))
+app.use('/api/content', verifyToken, createProxyMiddleware({
+    target: process.env.CONTENT_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/': '/api/content/' }
+}))
 
 const PORT = process.env.PORT || 4000
 app.listen(PORT, () => {

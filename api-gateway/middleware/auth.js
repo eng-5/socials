@@ -29,6 +29,7 @@ async function verifyToken(req, res, next) {
         }
         next();
     } catch (error) {
+        req.log.error(error);
         return res.status(401).json({ error: 'Invalid or expired token' });
     }
 

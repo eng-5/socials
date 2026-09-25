@@ -2,7 +2,7 @@
 // Global error handling middleware
 
 module.exports = (err, req, res, next) => {
-    console.error(err.stack);
+    req.log.error(err.stack);
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 

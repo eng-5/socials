@@ -1,0 +1,104 @@
+openapi: 3.0.3
+info:
+  title: Content Service API
+  version: 1.0.0
+  description: Handles post creation and retrieval for the social platform.
+
+paths:
+  /api/content/posts:
+    post:
+      summary: Create a new post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostInput'
+      responses:
+        '201':
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: Get paginated posts
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  totalCount:
+                    type: number
+                  currentPage:
+                    type: number
+                  hasMore:
+                    type: boolean
+          
+components:
+  schemas:
+    Post:
+      type: object
+      properties:
+        _id:
+          type: string
+        authorId:
+          type: string
+        text:
+          type: string
+        likes:
+          type: array
+          items:
+            type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreatePostInput:
+      type: object 
+      required:
+        - text
+      properties:
+        text:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string

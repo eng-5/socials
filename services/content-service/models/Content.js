@@ -4,8 +4,7 @@ const mongoose = require('mongoose');
 const contentSchema = new mongoose.Schema({
     authorId: {
         type: String,
-        required: [true, 'Author Id is required'],
-        index: true
+        required: [true, 'Author Id is required']
     },
     text: {
         type: String,

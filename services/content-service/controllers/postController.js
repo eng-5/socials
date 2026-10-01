@@ -12,12 +12,17 @@ exports.createPost = catchAsync(async (req, res, next) => {
     return res.status(201).json({ status: 'success', post })
 });
 
-
+const parsePositiveInt = (value, fallback, name, max = Infinity) => {
+    if (value === undefined) return fallback;
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 1 || n > max) {
+        throw new AppError(`Invalid ${name}`, 400);
+    }
+    return n;
+}
 exports.getAllPosts = catchAsync(async (req, res, next) => {
-    let { page, limit } = req.query;
-    page = Number(page) || 1;
-    limit = Number(limit) || 20;
-
+    const page = parsePositiveInt(req.query.page, 1, 'page');
+    const limit = parsePositiveInt(req.query.limit, 20, 'limit', 50);
     const [posts, totalCount] = await Promise.all([
         Content.find({}).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
         Content.countDocuments({})

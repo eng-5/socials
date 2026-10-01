@@ -55,11 +55,11 @@ exports.login = async (req, res) => {
         const token = signToken(user.id);
         return res.status(200).json({
             token,
-            user: { userId: user.id, username: user.username, email: user.email }
+            user: { id: user.id, username: user.username, email: user.email }
         })
     } catch (err) {
         console.error(err);
-        res.status(500).json('Something went wrong');
+        res.status(500).json({ error: 'Something went wrong' });
     }
 }
 exports.logout = async (req, res) => {
@@ -77,7 +77,7 @@ exports.logout = async (req, res) => {
         }
         return res.status(200).json({ message: 'Logged out successfully' });
     } catch (err) {
-        console.err(err);
+        console.error(err);
         res.status(500).json({ error: 'Something went wrong' });
     }
 

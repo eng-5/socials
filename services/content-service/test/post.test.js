@@ -58,3 +58,28 @@ describe('GET /api/content/posts?page=1&limit=2', () => {
     });
 
 })
+
+describe('GET /api/content/posts query validation', () => {
+    it.each([
+        'page=0', 'page=-1', 'page=abc', 'page=1.5',
+        'limit=0', 'limit=51', 'limit=abc', 'limit=2.5',
+    ])('rejects ?%s with 400', async (qs) => {
+        const res = await request(app)
+            .get(`/api/content/posts?${qs}`)
+            .set('x-user-id', 'test-user-123')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET);
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it('still works with no query params (defaults)', async () => {
+        const res = await request(app)
+            .get('/api/content/posts')
+            .set('x-user-id', 'test-user-123')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.currentPage).toBe(1);
+    });
+
+})

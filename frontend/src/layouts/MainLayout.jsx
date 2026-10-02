@@ -4,37 +4,39 @@ import {
   Home, Compass, Bell, MessageCircle, Map, User, Bot,
   Settings, Search, Plus, Sparkles, TrendingUp, Zap, Activity
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
-  { to: '/', icon: Home,          label: 'Home',          end: true },
-  { to: '/explore',       icon: Compass,       label: 'Explore' },
-  { to: '/notifications', icon: Bell,          label: 'Notifications' },
-  { to: '/messages',      icon: MessageCircle, label: 'Messages' },
-  { to: '/map',           icon: Map,           label: 'Map' },
-  { to: '/profile',       icon: User,          label: 'Profile' },
-  { to: '/ai',            icon: Bot,           label: 'AI Assistant' },
+  { to: '/', icon: Home, label: 'Home', end: true },
+  { to: '/explore', icon: Compass, label: 'Explore' },
+  { to: '/notifications', icon: Bell, label: 'Notifications' },
+  { to: '/messages', icon: MessageCircle, label: 'Messages' },
+  { to: '/map', icon: Map, label: 'Map' },
+  { to: '/profile', icon: User, label: 'Profile' },
+  { to: '/ai', icon: Bot, label: 'AI Assistant' },
 ];
 
 const mobileNav = [
   { to: '/', icon: Home, end: true },
-  { to: '/explore',       icon: Compass },
-  { to: '/messages',      icon: MessageCircle },
+  { to: '/explore', icon: Compass },
+  { to: '/messages', icon: MessageCircle },
   { to: '/notifications', icon: Bell },
-  { to: '/profile',       icon: User },
+  { to: '/profile', icon: User },
 ];
 
 const aiTrending = [
   { cat: 'AI Pulse · Trending', tag: '#NeuralArtGen', score: 98 },
-  { cat: 'Design · Hot',        tag: '#CinematicUI',  score: 91 },
-  { cat: 'Tech · Rising',       tag: '#ObsidianVibe', score: 87 },
+  { cat: 'Design · Hot', tag: '#CinematicUI', score: 91 },
+  { cat: 'Tech · Rising', tag: '#ObsidianVibe', score: 87 },
 ];
 
 export default function MainLayout() {
-  const location  = useLocation();
-  const navigate  = useNavigate();
+  const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [sfocus, setSfocus] = useState(false);
 
-  const isHome     = location.pathname === '/';
+  const isHome = location.pathname === '/';
   const isMessages = location.pathname === '/messages';
 
   return (
@@ -42,7 +44,7 @@ export default function MainLayout() {
 
       {/* ── Cinematic Background Glows ── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-[20%] -left-[10%] w-[55%] h-[55%] bg-secondary-container/20 rounded-full blur-[140px] animate-pulse-glow" />
+        <div clbassName="absolute -top-[20%] -left-[10%] w-[55%] h-[55%] bg-secondary-container/20 rounded-full blur-[140px] animate-pulse-glow" />
         <div className="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-primary-dim/10 rounded-full blur-[140px] animate-pulse-glow delay-1500" />
       </div>
 
@@ -73,8 +75,8 @@ export default function MainLayout() {
             <Bell size={19} />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary border-2 border-background" />
           </button>
-          <button onClick={() => navigate('/profile')} className="w-8 h-8 rounded-full overflow-hidden border border-primary/30 hover:border-primary/60 ring-2 ring-transparent hover:ring-primary/20 transition-all">
-            <img src="https://i.pravatar.cc/150?img=11" alt="Profile" className="w-full h-full object-cover" />
+          <button onClick={() => navigate('/profile')} className="w-8 h-8 rounded-full overflow-hidden border border-primary/30 hover:border-primary/60 ring-2 ring-transparent hover:ring-primary/20 transition-all flex items-center justify-center bg-primary/20 text-primary font-bold text-xs">
+            {user?.username?.[0]?.toUpperCase() || '?'}
           </button>
         </div>
       </header>
@@ -93,10 +95,9 @@ export default function MainLayout() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative ${
-                  isActive
-                    ? 'text-primary bg-primary/10 font-bold'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-white/5 hover:translate-x-1'
+                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative ${isActive
+                  ? 'text-primary bg-primary/10 font-bold'
+                  : 'text-slate-400 hover:text-slate-100 hover:bg-white/5 hover:translate-x-1'
                 }`
               }
             >
@@ -112,8 +113,7 @@ export default function MainLayout() {
           <NavLink
             to="/settings"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 mt-2 ${
-                isActive ? 'text-primary bg-primary/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 mt-2 ${isActive ? 'text-primary bg-primary/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
               }`
             }
           >
@@ -197,8 +197,7 @@ export default function MainLayout() {
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all ${
-                isActive ? 'text-primary bg-primary/10 scale-105' : 'text-slate-500 hover:text-slate-300'
+              `flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all ${isActive ? 'text-primary bg-primary/10 scale-105' : 'text-slate-500 hover:text-slate-300'
               }`
             }
           >

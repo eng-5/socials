@@ -33,6 +33,16 @@ describe('POST /api/content/posts', () => {
         expect(res.body.post.text).toBe('hello world');
         expect(res.body.post.authorId).toBe('test-user-123');
     })
+
+    it('rejects a post with text over 200 characters with 400', async () => {
+        const res = await request(app)
+            .post('/api/content/posts')
+            .set('x-user-id', 'test-user-123')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'a'.repeat(201) });
+
+        expect(res.statusCode).toBe(400);
+    })
 });
 
 describe('GET /api/content/posts?page=1&limit=2', () => {
@@ -83,3 +93,4 @@ describe('GET /api/content/posts query validation', () => {
     });
 
 })
+

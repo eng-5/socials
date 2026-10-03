@@ -11,4 +11,7 @@ connectDB().then(() => {
     });
 }
 
-)
+).catch((err) => {
+    console.error('❌ Failed to connect database:', err);
+    process.exit(1);
+})

@@ -3,6 +3,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../app');
+const Content = require('../models/Content');
 
 
 beforeAll(async () => {
@@ -94,3 +95,97 @@ describe('GET /api/content/posts query validation', () => {
 
 })
 
+describe('PATCH /api/content/posts/:id', () => {
+    it('updates post when the author matches', async () => {
+        const createRes = await request(app)
+            .post('/api/content/posts')
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'original' });
+
+        const res = await request(app)
+            .patch(`/api/content/posts/${createRes.body.post._id}`)
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'edited' });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.post.text).toBe('edited');
+    })
+    it('rejects an edit from a different user with 403', async () => {
+        const createRes = await request(app)
+            .post('/api/content/posts')
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'original' });
+
+        const res = await request(app)
+            .patch(`/api/content/posts/${createRes.body.post._id}`)
+            .set('x-user-id', 'someone-else')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'Hijacked' });
+
+        expect(res.statusCode).toBe(403);
+    })
+    it('returns 404 for a nonexistent post id', async () => {
+        const fakedId = '507f1f77bcf86cd728704672' // valid looking Mongo ObjectId that doesn't exist 
+        const res = await request(app)
+            .patch(`/api/content/posts/${fakedId}`)
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'edited' })
+
+        expect(res.statusCode).toBe(404);
+    })
+})
+
+describe('DELETE /api/content/posts/:id', () => {
+    it('deletes post when the author matches', async () => {
+        const createRes = await request(app)
+            .post('/api/content/posts')
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'original' })
+
+        const del = await request(app)
+            .delete(`/api/content/posts/${createRes.body.post._id}`)
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+
+
+        const getRes = await Content.findById(createRes.body.post._id)
+
+        expect(del.statusCode).toBe(204)
+        expect(getRes).toBeNull();
+    })
+    it('rejects a delete from a different user with 403', async () => {
+        const createRes = await request(app)
+            .post('/api/content/posts')
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'original' })
+
+        const del = await request(app)
+            .delete(`/api/content/posts/${createRes.body.post._id}`)
+            .set('x-user-id', 'someone-else')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+
+        expect(del.statusCode).toBe(403)
+    })
+    it('returns 404 for a nonexistent post id', async () => {
+        const fakedId = '507f1f77bcf86cd728704672' // valid looking Mongo ObjectId that doesn't exist 
+        const createRes = await request(app)
+            .post('/api/content/posts')
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+            .send({ text: 'original' })
+
+        const del = await request(app)
+            .delete(`/api/content/posts/${fakedId}`)
+            .set('x-user-id', 'author-1')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET)
+
+
+        expect(del.statusCode).toBe(404)
+    })
+})

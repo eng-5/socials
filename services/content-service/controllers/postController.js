@@ -37,3 +37,30 @@ exports.getAllPosts = catchAsync(async (req, res, next) => {
     })
 
 })
+
+exports.updatePost = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const { text } = req.body;
+    const requestId = req.headers['x-user-id'];
+    if (!text) throw new AppError('Text is required to update a post', 400);
+    if (!id) throw new AppError('id is required to update a post', 400);
+    const post = await Content.findById(id);
+    if (!post) throw new AppError('Post not found', 404);
+    if (post.authorId !== requestId) throw new AppError('You can only edit your own posts', 403)
+
+    post.text = text;
+    await post.save();
+    return res.status(200).json({ status: 'success', post });
+})
+
+
+exports.deletePost = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const requestId = req.headers['x-user-id'];
+    if (!id) throw new AppError('id is required to delete a post', 400);
+    const post = await Content.findById(id);
+    if (!post) throw new AppError('Post not found or already deleted', 404);
+    if (post.authorId !== requestId) throw new AppError('You can only delete your own posts', 403)
+    await post.deleteOne();
+    return res.status(204).send();
+})

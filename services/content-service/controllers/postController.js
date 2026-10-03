@@ -21,11 +21,13 @@ const parsePositiveInt = (value, fallback, name, max = Infinity) => {
     return n;
 }
 exports.getAllPosts = catchAsync(async (req, res, next) => {
-    const page = parsePositiveInt(req.query.page, 1, 'page');
-    const limit = parsePositiveInt(req.query.limit, 20, 'limit', 50);
+    const { authorId } = req.query;
+    const page = parsePositiveInt(req.query.page, 1, "page");
+    const limit = parsePositiveInt(req.query.limit, 20, "limit", 50);
+    const filter = authorId ? { authorId } : {};
     const [posts, totalCount] = await Promise.all([
-        Content.find({}).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
-        Content.countDocuments({})
+        Content.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
+        Content.countDocuments(filter)
     ]);
 
     return res.status(200).json({
@@ -64,3 +66,4 @@ exports.deletePost = catchAsync(async (req, res, next) => {
     await post.deleteOne();
     return res.status(204).send();
 })
+

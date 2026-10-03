@@ -93,6 +93,36 @@ describe('GET /api/content/posts query validation', () => {
         expect(res.body.currentPage).toBe(1);
     });
 
+    it('filters between get all posts and get posts from a specific authorId', async () => {
+        const num = [1, 2, 3, 4, 5, 6];
+        const authors = ['author1', 'author2', 'author3']
+        for (const n of num) {
+            const res = await request(app).post('/api/content/posts')
+                .set('x-user-id', authors[(n - 1) % authors.length])
+                .set('x-internal-secret', process.env.INTERNAL_SECRET)
+                .send({ text: `hello world ${n}` });
+            expect(res.statusCode).toBe(201);
+        }
+
+        const filterRes = await request(app)
+            .get('/api/content/posts?authorId=author2')
+            .set('x-user-id', 'test-user-123')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET);
+
+        expect(filterRes.statusCode).toBe(200);
+        expect(filterRes.body.posts).toHaveLength(2);
+        expect(filterRes.body.posts.every(p => p.authorId === 'author2')).toBe(true)
+
+        const filterRes2 = await request(app)
+            .get('/api/content/posts')
+            .set('x-user-id', 'test-user-123')
+            .set('x-internal-secret', process.env.INTERNAL_SECRET);
+
+        expect(filterRes2.statusCode).toBe(200);
+        expect(filterRes2.body.posts).toHaveLength(6);
+
+    })
+
 })
 
 describe('PATCH /api/content/posts/:id', () => {

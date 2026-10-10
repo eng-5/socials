@@ -30,6 +30,10 @@ exports.register = async (req, res) => {
         });
     } catch (err) {
         console.error(err);
+        if (err.name === 'SequelizeUniqueConstraintError') {
+            const part = err.errors[0].path
+            return res.status(409).json({ error: `${part} already in use` })
+        }
         res.status(500).json({ error: 'Something went wrong' });
     }
 

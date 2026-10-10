@@ -14,7 +14,7 @@ export default function AuthSignup() {
   const [focused, setFocused] = useState('');
 
   const fields = [
-    { key: 'username', label: 'Full name', Icon: User, type: 'text', ph: 'Kaelen Vance' },
+    { key: 'username', label: 'User name', Icon: User, type: 'text', ph: 'Kaelen Vance' },
     { key: 'email', label: 'Email address', Icon: Mail, type: 'email', ph: 'name@example.com' },
     { key: 'password', label: 'Create password', Icon: Lock, type: 'password', ph: '••••••••••' },
   ];

@@ -28,7 +28,11 @@ function attachRequestId(req, res, next) {
 
 app.use(attachRequestId);
 app.use(pinoHttp({
-    genReqId: (req) => req.headers['x-request-id']
+    genReqId: (req) => req.headers['x-request-id'],
+    redact: ['req.headers.authorization',
+        'req.headers["x-internal-secret"]',
+        'req.headers.cookie'
+    ]
 }))
 
 

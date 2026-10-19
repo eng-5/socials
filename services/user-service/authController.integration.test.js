@@ -26,7 +26,15 @@ test('POST /api/user/auth/register rejects a duplicate email', async () => {
 
     const res = await request(app).post('/api/user/auth/register').send({ username: 'userb', email: 'dup@test.com', password: 'pass1234' });
 
-    expect(res.statusCode).toBe(400);
+    expect(res.statusCode).toBe(409);
+});
+test('POST /api/user/auth/register rejects a duplicate username', async () => {
+    await request(app).post('/api/user/auth/register').send({ username: 'usera', email: 'usera@test.com', password: 'pass1234' });
+
+    const res = await request(app).post('/api/user/auth/register').send({ username: 'usera', email: 'userb@test.com', password: 'pass1234' });
+
+    expect(res.statusCode).toBe(409);
+    expect(res.body.error).toMatch(/username/);
 });
 // test for the login route
 test('POST /api/user/auth/login returns a JWT for correct credentials', async () => {

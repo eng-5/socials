@@ -17,11 +17,10 @@ export default function Home() {
     const fetchPosts = async () => {
       try {
         const res = await getAllPosts(1, 20);
-        // setPosts(res.data.posts);
         setPosts(prev => {
           const existingIds = new Set(prev.map(p => p._id));
           const fresh = res.data.posts.filter(p => !existingIds.has(p._id));
-          return [...prev, ...fresh];
+          return [...prev, ...fresh].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         });
       } catch (err) {
         const status = err.response?.status;
@@ -73,7 +72,7 @@ export default function Home() {
         {loading && posts.length === 0 && (
           <div className="h-40 rounded-3xl bg-surface-container/60 animate-pulse" />
         )}
-        {feedError && post.length === 0 && (
+        {feedError && posts.length === 0 && (
           <p className="text-sm text-error text-center">{feedError}</p>
         )}
         {!loading && !feedError && posts.length === 0 && (

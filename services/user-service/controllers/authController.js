@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
         }
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
-            return res.status(400).json({ error: 'Email already in use' });
+            return res.status(409).json({ error: 'Email already in use' });
         }
 
         const user = await User.create({ username, email, password });
@@ -29,11 +29,11 @@ exports.register = async (req, res) => {
             user: { id: user.id, username: user.username, email: user.email }
         });
     } catch (err) {
-        console.error(err);
         if (err.name === 'SequelizeUniqueConstraintError') {
             const part = err.errors[0].path
             return res.status(409).json({ error: `${part} already in use` })
         }
+        console.error(err);
         res.status(500).json({ error: 'Something went wrong' });
     }
 

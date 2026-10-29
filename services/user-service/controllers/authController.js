@@ -1,11 +1,11 @@
 // controllers/authController.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 const redis = require('../config/redis');
 
 const signToken = (userId) => {
-    return jwt.sign({ id: userId, jti: uuidv4() }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return jwt.sign({ id: userId, jti: randomUUID() }, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 
 exports.register = async (req, res) => {
@@ -74,7 +74,16 @@ exports.logout = async (req, res) => {
         if (!jti || !exp) {
             return res.status(400).json({ error: 'No active session found' });
         }
-        const ttl = exp - Math.floor(Date.now() / 1000);
+
+        // Explicitly parse the header string into an interger
+        const parsedExp = Number(exp);
+
+        if (!Number.isInteger(parsedExp)) {
+            return res.status(400).json({ error: 'Invalid token expiration format' });
+        }
+
+        // Calculate the time to live (TTL) for the token
+        const ttl = parsedExp - Math.floor(Date.now() / 1000);
 
         if (ttl > 0) {
             await redis.set(`blacklist:${jti}`, '1', 'EX', ttl);

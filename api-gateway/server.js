@@ -12,9 +12,8 @@ const app = express();
 
 
 app.use(cors({
-    origin: [process.env.FRONTEND_URL, 'http://localhost:5173'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: process.env.FRONTEND_URL,
+    credentials: true
 }));
 
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 });

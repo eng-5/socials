@@ -67,4 +67,7 @@ test('a new post survives a slow, stale feed response', async ({ page }) => {
 
     await expect(page.getByText(postText)).toBeVisible();
 
+
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+
 });

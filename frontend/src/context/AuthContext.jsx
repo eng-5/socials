@@ -10,23 +10,33 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     // On first load, check if a token already exists (e.g. user refreshed the page)
-    useEffect((() => {
-        const token = localStorage.getItem('token');
-        if (token) {
+    useEffect(() => {
+        const fetchMe = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
             try {
                 const decoded = jwtDecode(token);
-                // Check the token hasn't already expired before trusting it
-                if (decoded.exp * 1000 > Date.now()) {
-                    setUser({ id: decoded.id });
-                } else {
+                if (decoded.exp * 1000 <= Date.now()) {
                     localStorage.removeItem('token');
+                    setLoading(false);
+                    return;
                 }
+                const res = await authApi.getMe();
+                setUser(res.data.user);
             } catch {
-                localStorage.removeItem('token')
+                localStorage.removeItem('token');
+
+
+            } finally {
+                setLoading(false);
+
             }
         }
-        setLoading(false);
-    }), []);
+        fetchMe();
+    }, []);
 
     const login = async ({ email, password }) => {
         const res = await authApi.login(email, password);

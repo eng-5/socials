@@ -1,11 +1,12 @@
+//  PostComposer.jsx
 import { useState } from 'react';
 import { Image, Film, BarChart2, Smile, Paperclip, Send, X } from 'lucide-react';
 
 const MAX_CHARS = 280;
 
 export default function PostComposer({ onPost }) {
-  const [content, setContent]   = useState('');
-  const [focused, setFocused]   = useState(false);
+  const [content, setContent] = useState('');
+  const [focused, setFocused] = useState(false);
 
   const handlePost = () => {
     if (!content.trim()) return;
@@ -15,15 +16,15 @@ export default function PostComposer({ onPost }) {
   };
 
   const remaining = MAX_CHARS - content.length;
-  const progress  = (content.length / MAX_CHARS) * 100;
-  const okToPost  = content.trim() && content.length <= MAX_CHARS;
+  const progress = (content.length / MAX_CHARS) * 100;
+  const okToPost = content.trim() && content.length <= MAX_CHARS;
 
   const actions = [
-    { icon: Image,     title: 'Image',   hover: 'hover:text-primary hover:bg-primary/10' },
-    { icon: Film,      title: 'GIF',     hover: 'hover:text-secondary hover:bg-secondary/10' },
-    { icon: BarChart2, title: 'Poll',     hover: 'hover:text-tertiary hover:bg-tertiary/10' },
-    { icon: Smile,     title: 'Emoji',   hover: 'hover:text-primary hover:bg-primary/10' },
-    { icon: Paperclip, title: 'Attach',  hover: 'hover:text-on-surface hover:bg-white/5' },
+    { icon: Image, title: 'Image', hover: 'hover:text-primary hover:bg-primary/10' },
+    { icon: Film, title: 'GIF', hover: 'hover:text-secondary hover:bg-secondary/10' },
+    { icon: BarChart2, title: 'Poll', hover: 'hover:text-tertiary hover:bg-tertiary/10' },
+    { icon: Smile, title: 'Emoji', hover: 'hover:text-primary hover:bg-primary/10' },
+    { icon: Paperclip, title: 'Attach', hover: 'hover:text-on-surface hover:bg-white/5' },
   ];
 
   return (

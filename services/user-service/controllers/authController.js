@@ -1,11 +1,11 @@
 // controllers/authController.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 const redis = require('../config/redis');
 
 const signToken = (userId) => {
-    return jwt.sign({ id: userId, jti: uuidv4() }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    return jwt.sign({ id: userId, jti: randomUUID() }, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 
 exports.register = async (req, res) => {
@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
         }
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
-            return res.status(400).json({ error: 'Email already in use' });
+            return res.status(409).json({ error: 'Email already in use' });
         }
 
         const user = await User.create({ username, email, password });
@@ -29,6 +29,10 @@ exports.register = async (req, res) => {
             user: { id: user.id, username: user.username, email: user.email }
         });
     } catch (err) {
+        if (err.name === 'SequelizeUniqueConstraintError') {
+            const part = err.errors[0].path
+            return res.status(409).json({ error: `${part} already in use` })
+        }
         console.error(err);
         res.status(500).json({ error: 'Something went wrong' });
     }
@@ -55,11 +59,11 @@ exports.login = async (req, res) => {
         const token = signToken(user.id);
         return res.status(200).json({
             token,
-            user: { userId: user.id, username: user.username, email: user.email }
+            user: { id: user.id, username: user.username, email: user.email }
         })
     } catch (err) {
         console.error(err);
-        res.status(500).json('Something went wrong');
+        res.status(500).json({ error: 'Something went wrong' });
     }
 }
 exports.logout = async (req, res) => {
@@ -70,14 +74,23 @@ exports.logout = async (req, res) => {
         if (!jti || !exp) {
             return res.status(400).json({ error: 'No active session found' });
         }
-        const ttl = exp - Math.floor(Date.now() / 1000);
+
+        // Explicitly parse the header string into an interger
+        const parsedExp = Number(exp);
+
+        if (!Number.isInteger(parsedExp)) {
+            return res.status(400).json({ error: 'Invalid token expiration format' });
+        }
+
+        // Calculate the time to live (TTL) for the token
+        const ttl = parsedExp - Math.floor(Date.now() / 1000);
 
         if (ttl > 0) {
             await redis.set(`blacklist:${jti}`, '1', 'EX', ttl);
         }
         return res.status(200).json({ message: 'Logged out successfully' });
     } catch (err) {
-        console.err(err);
+        console.error(err);
         res.status(500).json({ error: 'Something went wrong' });
     }
 

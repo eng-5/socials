@@ -5,16 +5,36 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const verifyToken = require('./middleware/auth');
+const { randomUUID } = require('crypto');
+const pinoHttp = require('pino-http');
 
 const app = express();
+
 
 app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true
 }));
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 });
 app.use(limiter);
+
+function attachRequestId(req, res, next) {
+    req.requestId = randomUUID();
+    req.headers['x-request-id'] = req.requestId;
+    next();
+}
+
+
+app.use(attachRequestId);
+app.use(pinoHttp({
+    genReqId: (req) => req.headers['x-request-id'],
+    redact: ['req.headers.authorization',
+        'req.headers["x-internal-secret"]',
+        'req.headers.cookie'
+    ]
+}))
+
 
 app.get('/health', (req, res) => res.json({ status: 'Gateway is running' }));
 function injectInternalSecret(req, res, next) {
@@ -40,6 +60,11 @@ app.use('/api/user', verifyToken, createProxyMiddleware({
     target: process.env.USER_SERVICE_URL,
     changeOrigin: true,
     pathRewrite: { '^/': '/api/user/' }
+}))
+app.use('/api/content', verifyToken, createProxyMiddleware({
+    target: process.env.CONTENT_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: { '^/': '/api/content/' }
 }))
 
 const PORT = process.env.PORT || 4000

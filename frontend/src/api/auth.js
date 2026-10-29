@@ -11,3 +11,6 @@ export const login = (email, password) => {
 export const logout = () => {
     return client.post('/api/user/auth/logout', {});
 }
+export const getMe = () => {
+    return client.get('/api/user/me');
+}

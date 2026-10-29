@@ -5,7 +5,7 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const verifyToken = require('./middleware/auth');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 const pinoHttp = require('pino-http');
 
 const app = express();
@@ -20,7 +20,7 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 });
 app.use(limiter);
 
 function attachRequestId(req, res, next) {
-    req.requestId = uuidv4();
+    req.requestId = randomUUID();
     req.headers['x-request-id'] = req.requestId;
     next();
 }

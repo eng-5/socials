@@ -1,4 +1,4 @@
-jest.setTimeout(30000); // 15s - enough headroom for Neon cold starts
+jest.setTimeout(30000); // 30s - enough headroom for Neon cold starts
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
 
@@ -12,7 +12,7 @@ const redis = require('./config/redis');
 const sequelize = require('./config/database');
 const User = require('./models/User');
 
-// Clean the Users table and reset mock call history so test don't interfere with each other
+// Clean the Users table and reset mock call history so tests don't interfere with each other
 beforeEach(async () => {
     jest.clearAllMocks();
     await User.destroy({ where: {}, truncate: true })
@@ -96,8 +96,7 @@ test('POST /api/user/auth/login returns a JWT for correct credentials', async ()
 
     //new: logout depends on every token carrying a jti
     const decoded = jwt.decode(res.body.token);
-    expect(decoded.id).toBeDefined();
-    expect(res.body.token).toBeDefined();
+    expect(decoded.jti).toBeDefined();
 });
 // Test to reject wrong Login password
 test('POST /api/user/auth/login rejects wrong password', async () => {
@@ -138,34 +137,8 @@ test('POST /api/user/auth/login gives the same error for an unknown email as for
 
 // -------------- logout ----------------
 
-test('POST /api/user/auth/logout logs a user out', async () => {
-    const res = await request(app)
-        .post('/api/user/auth/register')
-        .set('x-internal-secret', process.env.INTERNAL_SECRET)
-        .send({ username: 'testuser', email: 'test@test.com', password: 'pass1234' });
-
-    expect(res.statusCode).toBe(201);
-    expect(res.body.token).toBeDefined();
-    const redis = require('./config/redis');
-    const exp = (Date.now() / 1000) + 15;
-    const resLogout = await request(app)
-        .post('/api/user/auth/logout')
-        .set('x-token-jti', 'jti-token')
-        .set('x-token-exp', exp)
-        .set('x-internal-secret', process.env.INTERNAL_SECRET)
-
-    expect(resLogout.statusCode).toBe(200);
-    expect(redis.set).toHaveBeenCalledWith(
-        'blacklist:jti-token',
-        '1',
-        'EX',
-        expect.any(Number)
-    )
-    expect(resLogout.body.message).toMatch(/Logged out/i);
-});
-
 test('POST /api/user/auth/logout blacklists the token id with a TTL', async () => {
-    // The Gateway extracts jti and exp from the verified tokoen and forwards them,
+    // The Gateway extracts jti and exp from the verified token and forwards them,
     // so the test supplies those headers directly, exp is an integer, like a real JWT
 
     const exp = Math.floor(Date.now() / 1000) + 15;
@@ -199,7 +172,7 @@ test('POST /api/user/auth/logout without token headers returns 400 and writes no
     expect(redis.set).not.toHaveBeenCalled();
 });
 
-// new: the "already expired branch (ttl <= 0 means  there is nothing to blacklist"
+// new: the "already expired branch (ttl <= 0) means  there is nothing to blacklist"
 test('POST /api/user/auth/logout with an already-expired token succeeds without writing to redis', async () => {
     const exp = Math.floor(Date.now() / 1000) - 10;
 
@@ -211,6 +184,19 @@ test('POST /api/user/auth/logout with an already-expired token succeeds without 
 
     expect(res.statusCode).toBe(200);
     expect(redis.set).not.toHaveBeenCalled();
+});
+
+test('POST /api/user/auth/logout with an invalid token expiration returns a 400 and an error message', async () => {
+    const res = await request(app)
+        .post('/api/user/auth/logout')
+        .set('x-internal-secret', process.env.INTERNAL_SECRET)
+        .set('x-token-jti', 'old-jti')
+        .set('x-token-exp', 'hello');
+
+    expect(res.statusCode).toBe(400);
+    expect(redis.set).not.toHaveBeenCalled();
+    expect(res.body.error).toMatch(/Invalid token expiration/i);
+
 });
 
 // -------------------- trust boundary ----------------
@@ -225,7 +211,7 @@ test('rejects a request with no internal secret with 403', async () => {
     expect(res.body.error).toMatch(/Forbidden/i);
 });
 
-test('rejects a request with the wromg internal secret with 403', async () => {
+test('rejects a request with the wrong internal secret with 403', async () => {
     const res = await request(app)
         .post('/api/user/auth/login')
         .set('x-internal-secret', 'This-is-wrong')
@@ -234,3 +220,4 @@ test('rejects a request with the wromg internal secret with 403', async () => {
     expect(res.statusCode).toBe(403);
     expect(res.body.error).toMatch(/Forbidden/i);
 });
+

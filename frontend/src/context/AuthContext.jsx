@@ -8,6 +8,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [authError, setAuthError] = useState(false);
 
     // On first load, check if a token already exists (e.g. user refreshed the page)
     useEffect(() => {
@@ -26,8 +27,14 @@ export function AuthProvider({ children }) {
                 }
                 const res = await authApi.getMe();
                 setUser(res.data.user);
-            } catch {
-                localStorage.removeItem('token');
+                setAuthError(false);
+            } catch (err) {
+                if (err.response?.status === 401) {
+                    localStorage.removeItem('token');
+                } else {
+                    setAuthError(true);
+                }
+
 
 
             } finally {
@@ -42,12 +49,14 @@ export function AuthProvider({ children }) {
         const res = await authApi.login(email, password);
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
+        setAuthError(false);
         return res.data;
     }
     const register = async ({ username, email, password }) => {
         const res = await authApi.register(username, email, password);
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
+        setAuthError(false);
         return res.data;
     }
 
@@ -64,7 +73,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, authError }}>
             {children}
         </AuthContext.Provider>
     );

@@ -8,11 +8,16 @@ const client = axios.create({
 
 // Runs on every outgoing request - attaches the saved token, if one exists
 client.interceptors.request.use((config) => {
+    if (!config.timeout) {
+        config.timeout = 30000;
+    }
     const token = localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
+}, (error) => {
+    return Promise.reject(error);
 })
 
 // Runs on every incoming response - if token is invalid/expired anywhere,
